@@ -9,7 +9,7 @@ args = ["clean"]
 
 [tasks.build]
 command = "cargo"
-args = ["build"]
+args = ["build", "--release"]
 dependencies = ["clean"]
 
 [tasks.build-flow]

@@ -1,6 +1,6 @@
 [package]
 name = "git-export"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 authors = ["ddki2068@gmail.com"]
 publish = false
@@ -13,6 +13,8 @@ build = "build.rs"
 [dependencies]
 clap = { version = "4.4.13", features = ["derive"] }
 git2 = "0.18.1"
+walkdir = "2.4.0"
+zip = "0.6.6"
 
 [dev-dependencies]
 rustfmt = "0.10.0"
@@ -20,3 +22,14 @@ rusty-hook = "0.11.2"
 
 [build-dependencies]
 cargo-make = "0.37.5"
+
+[profile.release]
+opt-level = 'z'
+debug = false
+lto = true
+panic = 'abort'
+rpath = false
+debug-assertions = false
+codegen-units = 1
+incremental = false
+overflow-checks = false
