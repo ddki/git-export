@@ -16,7 +16,10 @@ fn match_str(s1: &str, s2: &str) -> bool {
 
 #[derive(Parser, Debug)]
 #[command(name = "git-export")]
-#[command(about = "Git导出工具", long_about = "Git提交记录导出文件。")]
+#[command(
+    about = "Git提交记录文件导出工具",
+    long_about = "Git export command for files of commits. Git 提交记录文件导出命令行工具。"
+)]
 struct Args {
     #[arg(
         short = 'f',
