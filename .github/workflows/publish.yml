@@ -27,15 +27,23 @@ jobs:
             binary_target: x86_64-pc-windows-msvc
           - platform: macos-latest
             binary_target: x86_64-apple-darwin
-          - platform: macos-latest
-            binary_target: aarch64-apple-darwin
           
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Install musl tools
+
+    - name: Install depencencies for ubuntu-latest
       if: matrix.os.platform == 'ubuntu-latest'
-      run: sudo apt-get install musl-tools
+      run: sudo apt-get install musl-tools pkg-config libssl-dev
+
+    - name: Set PKG_CONFIG_PATH
+      if: matrix.os.platform == 'ubuntu-latest'
+      run: export PKG_CONFIG_PATH=/usr/lib/pkgconfig
+    
+    - name: Set OPENSSL_DIR
+      if: matrix.os.platform == 'ubuntu-latest'
+      run: export OPENSSL_DIR=/usr/local/ssl
+
     - name: Install rust
       uses: actions-rs/toolchain@v1
       with:
@@ -43,17 +51,20 @@ jobs:
         target: ${{ matrix.os.binary_target}}
         profile: minimal
         override: true
+
     - name: Install cargo-make
       uses: actions-rs/cargo@v1
       with:
         command: install
         args: --debug cargo-make
+
     - name: Make zip-release-ci-flow
       id: zip-release-ci-flow
       run: cargo make --disable-check-for-updates zip-release-ci-flow
       env:
           TARGET: ${{ matrix.os.binary_target }}
           CROSS: ${{ matrix.os.cross }}
+
     - name: Upload Binaries
       uses: svenstaro/upload-release-action@v1-release
       with:
