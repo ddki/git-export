@@ -155,9 +155,9 @@ fn main() {
                             println!("error: {}", style("Not found file path").red().bold());
                         }
                         String::default()
-                    },
+                    }
                 };
-                
+
                 let new_file_blob = repo.find_blob(new_file.id());
 
                 if let Ok(blob_content) = new_file_blob {
