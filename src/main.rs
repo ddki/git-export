@@ -8,6 +8,7 @@ use std::{
 };
 
 use clap::{arg, command, Parser};
+use console::style;
 use git2::{DiffFormat, Oid};
 
 fn match_str(s1: &str, s2: &str) -> bool {
@@ -42,8 +43,11 @@ struct Args {
     )]
     in_commits: Vec<String>,
 
-    #[arg(long = "zip", default_value = "source.zip", help = "是否打包成zip文件")]
+    #[arg(long = "zip", default_value = "source.zip", help = "zip文件名称")]
     zip: String,
+
+    #[arg(short = 'V', long, default_value = "false", help = "是否打印日志")]
+    print_log: bool,
 }
 
 fn main() {
@@ -56,25 +60,33 @@ fn main() {
     };
     let in_commits = args.in_commits;
     let zip = args.zip;
+    let print_log = args.print_log;
 
     if !zip.ends_with(".zip") {
-        panic!("zip 文件名称有误，请使用.zip结尾");
+        println!(
+            "error: {}",
+            style("zip 文件名称有误，请使用.zip结尾").red().bold()
+        );
     }
 
     let current_dir = env::current_dir().unwrap();
     let out_path = current_dir.join(&out_dir);
 
-    println!(
-        "filter = {}, out_dir = {:?}, in_commits = {:?}",
-        filter, out_dir, in_commits
-    );
+    if print_log {
+        println!(
+            "filter = {}, out_dir = {:?}, in_commits = {:?}",
+            filter, out_dir, in_commits
+        );
+    }
 
     let repo = match git2::Repository::open("./") {
         Ok(repo) => repo,
         Err(e) => panic!("failed to open: {}", e),
     };
 
-    println!("repo path = {:?}", repo.path());
+    if print_log {
+        println!("repo path = {:?}", repo.path());
+    }
 
     let mut revwalk = repo.revwalk().unwrap();
 
@@ -115,11 +127,13 @@ fn main() {
         let commit = repo.find_commit(oid).unwrap();
         let commit_tree = commit.tree().unwrap();
 
-        println!("author: {}", commit.author().name().unwrap());
-        println!("email: {}", commit.author().email().unwrap());
-        println!("message: {}", commit.message().unwrap().trim());
-        println!("tree: {:?}", commit_tree);
-        println!("id: {}", commit.id());
+        if print_log {
+            println!("author: {}", commit.author().name().unwrap());
+            println!("email: {}", commit.author().email().unwrap());
+            println!("message: {}", commit.message().unwrap().trim());
+            println!("tree: {:?}", commit_tree);
+            println!("id: {}", commit.id());
+        }
 
         for parent in commit.parents() {
             let parent_tree = parent.tree().unwrap();
@@ -136,22 +150,35 @@ fn main() {
                         .to_string()
                         .replace("/", path::MAIN_SEPARATOR_STR)
                         .replace("\\", path::MAIN_SEPARATOR_STR),
-                    None => todo!(),
+                    None => {
+                        if print_log {
+                            println!("error: {}", style("Not found file path").red().bold());
+                        }
+                        String::default()
+                    },
                 };
-                let new_file_blob = repo.find_blob(new_file.id()).unwrap();
-                let new_file_content = std::str::from_utf8(new_file_blob.content()).unwrap();
+                
+                let new_file_blob = repo.find_blob(new_file.id());
 
-                let binding = out_path.join(new_file_path);
-                let file_path = binding.as_path();
+                if let Ok(blob_content) = new_file_blob {
+                    let new_file_content = std::str::from_utf8(blob_content.content()).unwrap();
 
-                let file_dir = file_path.parent().ok_or("No Parent Directory").unwrap();
-                if !file_dir.exists() {
-                    fs::create_dir_all(file_dir).expect("create dir failed");
+                    let binding = out_path.join(new_file_path);
+                    let file_path = binding.as_path();
+
+                    let file_dir = file_path.parent().ok_or("No Parent Directory").unwrap();
+                    if !file_dir.exists() {
+                        fs::create_dir_all(file_dir).expect("create dir failed");
+                    }
+
+                    let mut file = File::create(file_path).expect("create file failed");
+                    file.write_all(new_file_content.as_bytes())
+                        .expect("diff file write failed");
+                } else {
+                    if print_log {
+                        println!("error: {}", style("Not found file content").red().bold());
+                    }
                 }
-
-                let mut file = File::create(file_path).expect("create file failed");
-                file.write_all(new_file_content.as_bytes())
-                    .expect("diff file write failed");
 
                 true
             })
