@@ -4,7 +4,7 @@ use std::{
     env,
     fs::{self, File},
     io::Write,
-    path,
+    path, process,
 };
 
 use clap::{arg, command, Parser};
@@ -46,8 +46,8 @@ struct Args {
     #[arg(long = "zip", default_value = "source.zip", help = "zip文件名称")]
     zip: String,
 
-    #[arg(short = 'V', long, default_value = "false", help = "是否打印日志")]
-    print_log: bool,
+    #[arg(long, default_value = "false", help = "是否打印日志")]
+    verbose: bool,
 }
 
 fn main() {
@@ -60,7 +60,7 @@ fn main() {
     };
     let in_commits = args.in_commits;
     let zip = args.zip;
-    let print_log = args.print_log;
+    let verbose = args.verbose;
 
     if !zip.ends_with(".zip") {
         println!(
@@ -72,19 +72,19 @@ fn main() {
     let current_dir = env::current_dir().unwrap();
     let out_path = current_dir.join(&out_dir);
 
-    if print_log {
+    if verbose {
         println!(
             "filter = {}, out_dir = {:?}, in_commits = {:?}",
             filter, out_dir, in_commits
         );
     }
 
-    let repo = match git2::Repository::open("./") {
-        Ok(repo) => repo,
-        Err(e) => panic!("failed to open: {}", e),
-    };
+    let repo = git2::Repository::open("./").unwrap_or_else(|_err| {
+        println!("error: {}", style("当前文件夹不是git仓库").red().bold());
+        process::exit(1);
+    });
 
-    if print_log {
+    if verbose {
         println!("repo path = {:?}", repo.path());
     }
 
@@ -127,7 +127,7 @@ fn main() {
         let commit = repo.find_commit(oid).unwrap();
         let commit_tree = commit.tree().unwrap();
 
-        if print_log {
+        if verbose {
             println!("author: {}", commit.author().name().unwrap());
             println!("email: {}", commit.author().email().unwrap());
             println!("message: {}", commit.message().unwrap().trim());
@@ -151,7 +151,7 @@ fn main() {
                         .replace("/", path::MAIN_SEPARATOR_STR)
                         .replace("\\", path::MAIN_SEPARATOR_STR),
                     None => {
-                        if print_log {
+                        if verbose {
                             println!("error: {}", style("Not found file path").red().bold());
                         }
                         String::default()
@@ -175,7 +175,7 @@ fn main() {
                     file.write_all(new_file_content.as_bytes())
                         .expect("diff file write failed");
                 } else {
-                    if print_log {
+                    if verbose {
                         println!("error: {}", style("Not found file content").red().bold());
                     }
                 }
