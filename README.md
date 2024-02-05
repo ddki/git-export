@@ -83,7 +83,7 @@ Options:
   -o, --outdir <OUT_DIR>        导出目录 [default: git-export]
       --in-commit <IN_COMMITS>  commit哈希，filter限定在这些commit中，多个可以使用逗号分隔
       --zip <ZIP>               zip文件名称 [default: source.zip]
-  -V, --print-log               是否打印日志 (true or false)
+      --verbose                 是否打印日志
   -h, --help                    Print help (see more with '--help')
 ```
 

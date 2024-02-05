@@ -1,6 +1,6 @@
 [package]
 name = "git-export"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["ddki2068@gmail.com"]
 description = "Git export command for files of commits. Git 提交记录文件导出命令行工具。"
 license = "GPL-3.0"
