@@ -13,10 +13,10 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.4.13", features = ["derive"] }
-console = "0.15.7"
-git2 = "0.18.1"
-walkdir = "2.4.0"
+clap = { version = "4.5.22", features = ["derive"] }
+console = "0.15.8"
+git2 = "0.18.3"
+walkdir = "2.5.0"
 zip = "0.6.6"
 
 [dev-dependencies]
@@ -24,7 +24,7 @@ rustfmt = "0.10.0"
 rusty-hook = "0.11.2"
 
 [build-dependencies]
-cargo-make = "0.37.5"
+cargo-make = "0.37.23"
 
 [profile.release]
 opt-level = 'z'
