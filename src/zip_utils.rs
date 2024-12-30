@@ -5,7 +5,7 @@ use std::{
 };
 use walkdir::{DirEntry, WalkDir};
 
-use zip::{result::ZipError, write::FileOptions};
+use zip::{result::ZipError, write::SimpleFileOptions};
 
 pub struct ZipUtils {}
 
@@ -27,7 +27,7 @@ impl ZipUtils {
         T: Write + Seek,
     {
         let mut zip = zip::ZipWriter::new(writer);
-        let options = FileOptions::default()
+        let options = SimpleFileOptions::default()
             .compression_method(method)
             .unix_permissions(0o755);
 

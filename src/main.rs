@@ -3,7 +3,7 @@ mod zip_utils;
 use std::{
     env,
     fs::{self, File},
-    io::Write,
+    io::{Read, Write},
     path, process,
 };
 
@@ -18,6 +18,7 @@ fn match_str(s1: &str, s2: &str) -> bool {
 #[derive(Parser, Debug)]
 #[command(name = "git-export")]
 #[command(
+    version,
     about = "Git提交记录文件导出工具",
     long_about = "Git export command for files of commits. Git 提交记录文件导出命令行工具。"
 )]
@@ -161,8 +162,6 @@ fn main() {
                 let new_file_blob = repo.find_blob(new_file.id());
 
                 if let Ok(blob_content) = new_file_blob {
-                    let new_file_content = std::str::from_utf8(blob_content.content()).unwrap();
-
                     let binding = out_path.join(new_file_path);
                     let file_path = binding.as_path();
 
@@ -172,8 +171,18 @@ fn main() {
                     }
 
                     let mut file = File::create(file_path).expect("create file failed");
-                    file.write_all(new_file_content.as_bytes())
-                        .expect("diff file write failed");
+                    if let Ok(new_file_content) = std::str::from_utf8(blob_content.content()) {
+                        file.write_all(new_file_content.as_bytes())
+                            .expect("diff file write failed");
+                    } else {
+                        let binary_content: Vec<u8> = blob_content
+                            .content()
+                            .bytes()
+                            .filter_map(Result::ok)
+                            .collect();
+                        file.write_all(&binary_content)
+                            .expect("diff file write failed");
+                    }
                 } else {
                     if verbose {
                         println!("error: {}", style("Not found file content").red().bold());

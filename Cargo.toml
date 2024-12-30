@@ -1,6 +1,6 @@
 [package]
 name = "git-export"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["ddki2068@gmail.com"]
 description = "Git export command for files of commits. Git 提交记录文件导出命令行工具。"
 license = "GPL-3.0"
@@ -15,9 +15,9 @@ build = "build.rs"
 [dependencies]
 clap = { version = "4.5.22", features = ["derive"] }
 console = "0.15.8"
-git2 = "0.18.3"
+git2 = "0.19.0"
 walkdir = "2.5.0"
-zip = "0.6.6"
+zip = "2.2.2"
 
 [dev-dependencies]
 rustfmt = "0.10.0"
