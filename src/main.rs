@@ -9,7 +9,7 @@ use std::{
 
 use clap::{arg, command, Parser};
 use console::style;
-use git2::{DiffFormat, Oid};
+use git2::{DiffFormat, Oid, Sort};
 
 fn match_str(s1: &str, s2: &str) -> bool {
     s1.eq(s2) || s1.contains(s2) || s1.to_lowercase().eq(&s2.to_lowercase())
@@ -89,7 +89,13 @@ fn main() {
         println!("repo path = {:?}", repo.path());
     }
 
-    let mut revwalk = repo.revwalk().unwrap();
+    let mut revwalk = match repo.revwalk() {
+        Ok(revwalk) => revwalk,
+        Err(_) => panic!("error: {}", style("revwalk failed").red().bold()),
+    };
+
+    // 设置遍历顺序 提交时间升序
+    revwalk.set_sorting(Sort::TIME | Sort::REVERSE).unwrap();
 
     // 设置遍历开始的提交
     revwalk.push_head().unwrap();
